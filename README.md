@@ -9,6 +9,6 @@ Preparation:
  curl http://localhost:1234/1/status
  curl -T1 http://localhost:1234/1/status
 
- curl http://localhost/1/sync/
+ curl -H 'Accept: text/plain' http://localhost/1/sync/
 ```
 
