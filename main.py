@@ -46,7 +46,7 @@ with connect_db() as db:
 
 app.nodes = get_nodes()
 app.carddb = CardTable()
-app.carddb.reload()
+#app.carddb.reload()
 
 @app.route('/')
 def home():
