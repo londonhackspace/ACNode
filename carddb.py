@@ -1,6 +1,27 @@
 import os, json
+import sqlite3
 
 from app import app
+
+def setup_db(conn):
+    statements = [
+        "create table if not exists tool (node_id int primary key, name text, status int)",
+        "create table if not exists permission (node_id int, timestamp datetime default (CURRENT_TIMESTAMP), card_id text, granter_card_id text, is_maintainer boolean default 0, primary key (node_id, card_id))",
+        "create table if not exists tool_usage (node_id int, timestamp datetime default (CURRENT_TIMESTAMP), status int, card_id text)",
+        "create table if not exists case_alert (node_id int, timestamp datetime default (CURRENT_TIMESTAMP), status int)",
+
+        "create index if not exists tool_usage_index_by_time on tool_usage (node_id, timestamp)",
+        "create index if not exists tool_usage_index_by_card on tool_usage (node_id, card_id)",
+        "create index if not exists case_alert_index_by_time on case_alert (node_id, timestamp)",
+        "insert or replace into tool (node_id, name, status) values (1, 'testtool', 1)",
+        "insert or replace into permission (node_id, card_id, is_maintainer) values (1, 'abcde12345', 1)",
+    ]
+
+    c = conn.cursor()
+    for s in statements:
+        c.execute(s)
+        conn.commit()
+    print "Database initialized"
 
 class CardTable(object):
     def __init__(self):
