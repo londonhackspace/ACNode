@@ -58,7 +58,7 @@ def get_tool_time():
 def add_tool_time():
 
     if request.headers['Content-type'] == 'text/plain':
-        m = re.match('^([0-9]+),([A-Z0-9]+)$', request.data.strip())
+        m = re.match('^([0-9]+),([A-Z0-9]+)$', request.data)
         if not m:
             return 'Invalid content', 400
 
@@ -71,7 +71,7 @@ def add_tool_time():
     if not access:
         abort(403)
 
-    if tooluse.strip() not in ('1', '0'):
+    if tooluse not in ('1', '0'):
         return 'Invalid tooluse', 400
 
     request.node.tooluse = int(tooluse)
@@ -83,7 +83,7 @@ def case():
     if request.method == 'GET':
         return str(request.node.case)
 
-    case = request.data.strip()
+    case = request.data
     if case not in ('1', '0'):
         return 'Invalid case', 400
 
@@ -97,7 +97,7 @@ def card(uid):
         access = request.node.checkCard(g.db, uid)
         return str(access)
 
-    granter_uid = request.form['gid']
+    granter_uid = request.data
     granter_access = request.node.checkCard(g.db, granter_uid)
     if granter_access != 2:
         abort(403)
