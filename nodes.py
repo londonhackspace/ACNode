@@ -1,6 +1,6 @@
 import re
 
-from flask import request, Blueprint, render_template, abort
+from flask import request, Blueprint, render_template, abort, g
 from werkzeug.exceptions import NotFound
 
 from app import app
@@ -94,20 +94,20 @@ def case():
 @nodes.route('/card/<uid>', methods=['GET', 'POST'])
 def card(uid):
     if request.method == 'GET':
-        access = request.node.checkCard(uid)
+        access = request.node.checkCard(g.db, uid)
         return str(access)
 
-    maintainer_uid = request.data
-    maintainer_access = request.node.checkCard(maintainer_uid)
-    if maintainer_access < 2:
+    granter_uid = request.form['gid']
+    granter_access = request.node.checkCard(g.db, granter_uid)
+    if granter_access != 2:
         abort(403)
 
-    user_access = request.node.checkCard(user_uid)
+    user_access = request.node.checkCard(g.db, uid)
     if user_access: # no change
         return 'OK (was %s)' % user_access
 
     else:
-        request.node.addCard(user_uid)
+        request.node.addCard(g.db, uid, granter_uid)
         return 'OK', 201
 
 
@@ -123,10 +123,13 @@ def sync(from_uid=None):
     # If no DB, return 204
 
     if best_match == text:
-        next = request.node.getCard(from_uid)
-        if not next:
+        next_card = request.node.getCard(g.db, from_uid)
+        if not next_card:
             return 'END'
-        return next, 206
+        # this used to return response 206, but that's doesn't really
+        # satisfy the http specification.
+        # is there any reason not to return all the cards at once here?
+        return next_card
 
     elif best_match == json:
         card = request.node.card
