@@ -4,6 +4,7 @@ from flask import request, Blueprint, render_template, abort, g
 from werkzeug.exceptions import NotFound
 
 from app import app
+from carddb import MAINTAINER
 
 nodes = Blueprint('nodes', __name__, url_prefix='/<int:node>')
 
@@ -99,7 +100,7 @@ def card(uid):
 
     granter_uid = request.data
     granter_access = request.node.checkCard(g.db, granter_uid)
-    if granter_access != 2:
+    if granter_access != MAINTAINER:
         abort(403)
 
     user_access = request.node.checkCard(g.db, uid)
@@ -123,12 +124,10 @@ def sync(from_uid=None):
     # If no DB, return 204
 
     if best_match == text:
+        # Use the embedded protocol (i.e. only one card at a time)
         next_card = request.node.getCard(g.db, from_uid)
         if not next_card:
             return 'END'
-        # this used to return response 206, but that's doesn't really
-        # satisfy the http specification.
-        # is there any reason not to return all the cards at once here?
         return next_card
 
     elif best_match == json:
@@ -136,6 +135,7 @@ def sync(from_uid=None):
         return jsonify(cards)
 
     else:
+        # Not implemented yet
         return render_template('cards.html', cards=request.node.cards)
 
 
